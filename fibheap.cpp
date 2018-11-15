@@ -2,6 +2,7 @@
 #include <iostream> 
 #include <string>
 #include <stdlib.h>
+#include <unordered_map>
 using namespace std;
 
 class Entry {
@@ -72,7 +73,8 @@ Entry meld(Entry *root1, Entry *root2) {
 }
 
 Entry* insertEntry(Entry *root, Entry *ent, string hashTag) {
-	// Insert Entry ent into fibonacci heap rooted at root
+	// Insert Entry ent into fibonacci heap rooted at root 
+
 	cout << "Insert. root: " << root->keyword << " entry: " << ent->keyword << "\n";
 	if(root->right == nullptr){
 		root->left = ent;
@@ -100,20 +102,36 @@ int main () {
 	ifstream infile;
 	infile.open("test1.txt");
 
+	// initialiaze hash map
+	unordered_map<string, Entry*> umap;
+
 	Entry heap1("initial_root",0);	// fake entry for intial root
 	heap = &heap1; 
 	string line;
-	int num = 0;
+	int num = 0;	// number of keywords
 	while (getline(infile, line)) {
 		if (line[0] == '$') {
 			line = line.substr(1, string::npos);	// discard first character
 			string keyword = line.substr(0, line.find(' '));	// extract keyword before space
 			int amount = stoi(line.substr(line.find(' '), string::npos),nullptr,10); 	// extract number after space 
 			cout << "Keyword: '" << keyword << "' was accessed " << amount << " times.\n";
-			num++;
+			num++; 
 
-			Entry new_entry(keyword, amount);	// create Entry for given input 
-			heap = insertEntry(heap, &new_entry, "tag");	// add entry to heap
+			// check if keyword has already been mapped
+			if (umap.find(keyword) == umap.end()) {
+				// keyword not found in hash map; add new entry to heap
+				Entry new_entry(keyword, amount);	// create Entry for given input 
+				heap = insertEntry(heap, &new_entry, keyword);	// add entry to heap
+
+				umap[keyword] = &new_entry;	// map keyword to new entry in hash map
+				Entry *temp;
+				temp = umap.at(keyword);	// check to make sure mapped item is accurate
+				cout << "kw from entry: " << new_entry.keyword << " kw from map: " << temp->keyword << endl;
+			} else {
+				// keyword exists in hash map; increase count of accesses
+
+			}
+
 			//cout << "Root: " << heap.keyword << ", " << heap.count << " left: " << heap.left->keyword << heap.left->count << " right: " << heap.right->keyword << heap.right->count << "\n";
 			cout << "Root: " << heap->keyword << ", " << heap->count << " left: " << heap->left->keyword << heap->left->count << " right: " << heap->right->keyword << heap->right->count << "\n";
 		}
